@@ -11,6 +11,14 @@ let canvas;
 let ball1, ball2, ball3;
 let balls = [];
 
+let dragging = false;
+let dragX = 0;
+let dragY = 0;
+let maxDrag = 150;
+
+let forceMultiplier = 10;
+let maxForce = 5000;
+
 let score = 0;
 
 let gameState = "waiting";
@@ -39,13 +47,69 @@ function draw() {
     ball1.display();
     ball2.display();
     ball3.display();
+
+    if(dragging && balls.length > 0) {
+        let currentBall = balls[balls.length - 1];
+        stroke("white");
+        strokeWeight(4);
+        line(currentBall.body.position.x, currentBall.body.position.y, dragX, dragY);
+        fill("white");
+        noStroke();
+        circle(dragX, dragY, 15);
+    }
+}
+
+function mousePressed() {
+    if(gameState !== "launched" && balls.length > 0) {
+        let currentBall = balls[balls.length - 1];
+        let d = dist(mouseX, mouseY, currentBall.body.position.x, currentBall.body.position.y);
+
+        if(d < 50) {
+            dragging = true;
+        }
+    }
 }
 
 function mouseDragged() {
-    if(gameState !== "launched" && balls.length > 0) {
+    if(dragging) {
         let currentBall = balls[balls.length - 1];
-        Matter.Body.setPosition(currentBall.body, {x: mouseX, y: mouseY});
+
+        dragX = mouseX;
+        dragY = mouseY;
+
+        let dx = dragX - currentBall.body.position.x;
+        let dy = dragY - currentBall.body.position.y;
+
+        let distance = sqrt(dx*dx + dy*dy);
+        if(distance > maxDrag) {
+            let angle = atan2(dy,dx);
+            dragX = currentBall.body.position.x + cos(angle) * maxDrag;
+            dragY = currentBall.body.position.y + sin(angle) * maxDrag;
+        }
 
         return false;
+    }
+}
+
+function mouseReleased() {
+    if(dragging) {
+        let currentBall = balls[balls.length - 1];
+        
+        let dx = currentBall.body.position.x - dragX;
+        let dy = currentBall.body.position.y - dragY;
+
+        let distance = sqrt(dx*dx + dy*dy);
+        let force = min(distance * forceMultiplier, maxForce);
+        let angle = atan2(dy,dx);
+        let forceX = cos(angle) * force;
+        let forceY = sin(angle) * force;
+
+        Body.setStatic(currentBall.body, false);
+
+        Body.applyForce(currentBall.body, currentBall.body.position, {x: forceX, y: forceY});
+        //Body.setVelocity(currentBall.body, {x: dx * 0.15, y: dy * 0.15});
+        
+        dragging = false;
+        gameState = "launched";
     }
 }
