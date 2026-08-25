@@ -11,13 +11,16 @@ let canvas;
 let ball1, ball2, ball3;
 let balls = [];
 
+let ground;
+let invPlatform;
+
 let dragging = false;
 let dragX = 0;
 let dragY = 0;
 let maxDrag = 150;
 
-let forceMultiplier = 10;
-let maxForce = 5000;
+let forceMultiplier = 5;
+let maxForce = 1000;
 
 let score = 0;
 
@@ -38,6 +41,8 @@ function setup() {
     ball2 = new Ball(300,320);
     ball3 = new Ball(200,320);
     balls.push(ball3, ball2, ball1);
+
+    ground = new Ground(600,600, 1200,100);
 }
 
 function draw() {
@@ -47,6 +52,8 @@ function draw() {
     ball1.display();
     ball2.display();
     ball3.display();
+
+    ground.display();
 
     if(dragging && balls.length > 0) {
         let currentBall = balls[balls.length - 1];
@@ -87,6 +94,9 @@ function mouseDragged() {
             dragY = currentBall.body.position.y + sin(angle) * maxDrag;
         }
 
+        let launchAngle = atan2(ballY - dragY, ballX - dragX);
+        Body.setAngle(currentBall.body, launchAngle);
+
         return false;
     }
 }
@@ -104,10 +114,14 @@ function mouseReleased() {
         let forceX = cos(angle) * force;
         let forceY = sin(angle) * force;
 
+        currentBall.launchAngle = atan2(forceY, forceX);
+
         Body.setStatic(currentBall.body, false);
 
         Body.applyForce(currentBall.body, currentBall.body.position, {x: forceX, y: forceY});
         //Body.setVelocity(currentBall.body, {x: dx * 0.15, y: dy * 0.15});
+
+        Body.setAngularVelocity(currentBall.body, 0.2);
         
         dragging = false;
         gameState = "launched";
