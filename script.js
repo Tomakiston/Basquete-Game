@@ -2,6 +2,7 @@ const Engine = Matter.Engine;
 const World = Matter.World;
 const Bodies = Matter.Bodies;
 const Body = Matter.Body;
+const Constraint = Matter.Constraint;
 
 let engine;
 let world;
@@ -14,6 +15,10 @@ let balls = [];
 let ground;
 let invPlatform;
 
+let hoop;
+let hoopImg;
+let invHoop1, invHoop2, invHoop3;
+
 let dragging = false;
 let dragX = 0;
 let dragY = 0;
@@ -22,12 +27,14 @@ let maxDrag = 150;
 let forceMultiplier = 5;
 let maxForce = 1000;
 
+let throwForce;
+
 let score = 0;
 
 let gameState = "waiting";
 
 function preload() {
-
+    hoopImg = loadImage("assets/hoop.png");
 }
 
 function setup() {
@@ -43,6 +50,11 @@ function setup() {
     balls.push(ball3, ball2, ball1);
 
     ground = new Ground(600,600, 1200,100);
+
+    hoop = createSprite(1000, 400);
+    hoop.addImage(hoopImg);
+
+    throwForce = new Throw(ball1.body, {x: 400, y: 320});
 }
 
 function draw() {
@@ -64,6 +76,8 @@ function draw() {
         noStroke();
         circle(dragX, dragY, 15);
     }
+
+    drawSprites();
 }
 
 function mousePressed() {
@@ -94,7 +108,7 @@ function mouseDragged() {
             dragY = currentBall.body.position.y + sin(angle) * maxDrag;
         }
 
-        let launchAngle = atan2(ballY - dragY, ballX - dragX);
+        let launchAngle = atan2(currentBall.body.position.y - dragY, currentBall.body.position.x - dragX);
         Body.setAngle(currentBall.body, launchAngle);
 
         return false;
@@ -122,8 +136,21 @@ function mouseReleased() {
         //Body.setVelocity(currentBall.body, {x: dx * 0.15, y: dy * 0.15});
 
         Body.setAngularVelocity(currentBall.body, 0.2);
+
+        throwForce.fly();
+        balls.pop();
         
         dragging = false;
         gameState = "launched";
+    }
+}
+
+function keyPressed() {
+    if(keyCode === 32 && gameState === "launched" && balls.length > 0) {
+        let currentBall = balls[balls.length - 1];
+        Matter.Body.setPosition(currentBall.body, {x: 400, y: 320});
+        throwForce.attach(currentBall.body);
+
+        gameState = "waiting";
     }
 }
