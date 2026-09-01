@@ -13,7 +13,6 @@ let ball1, ball2, ball3;
 let balls = [];
 
 let ground;
-let invPlatform;
 
 let hoop;
 let hoopImg;
@@ -49,10 +48,16 @@ function setup() {
     ball3 = new Ball(200,320);
     balls.push(ball3, ball2, ball1);
 
+    hoop = createSprite(1005, 300);
+    hoop.addImage(hoopImg);
+    hoop.scale = 0.9;
+
     ground = new Ground(600,600, 1200,100);
 
-    hoop = createSprite(1000, 400);
-    hoop.addImage(hoopImg);
+    invHoop1 = new Ground(828,182, 20,36);
+        invHoop1.visibility = 0;
+    invHoop2 = new Ground(992,180, 60,20);
+    invHoop3 = new Ground(1040,138, 35,273);
 
     throwForce = new Throw(ball1.body, {x: 400, y: 320});
 }
@@ -66,6 +71,10 @@ function draw() {
     ball3.display();
 
     ground.display();
+
+    invHoop1.display();
+    invHoop2.display();
+    invHoop3.display();
 
     if(dragging && balls.length > 0) {
         let currentBall = balls[balls.length - 1];
