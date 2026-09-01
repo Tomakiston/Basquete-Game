@@ -11,10 +11,15 @@ class Ground {
     }
 
     display() {
+        if(this.visibility === 0) {
+            return;
+        }
+
         let pos = this.body.position;
         
         rectMode(CENTER);
-        fill("#16680DFF");
+        fill(22,104,13, this.visibility);
+        noStroke();
         rect(pos.x, pos.y, this.width, this.height);
     }
 }
