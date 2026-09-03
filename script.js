@@ -55,14 +55,17 @@ function setup() {
 
     ground = new Ground(600,600, 1200,100);
 
-    invHoop1 = new Ground(828,182, 20,36);
+    invHoop1 = new Ground(828,205, 20,80);
     invHoop1.visibility = 0;
     invHoop2 = new Ground(992,180, 60,20);
     invHoop2.visibility = 0;
     invHoop3 = new Ground(1040,138, 35,273);
-    invHoop3 .visibility = 0;
+    invHoop3.visibility = 0;
 
     throwForce = new Throw(ball1.body, {x: 400, y: 320});
+
+    scorePoint = createSprite(900,210, 10,10);
+    //scorePoint.visible = false;
 }
 
 function draw() {
@@ -88,6 +91,8 @@ function draw() {
         noStroke();
         circle(dragX, dragY, 15);
     }
+
+    balls.overlap(scorePoint, scoreAPoint);
 
     drawSprites();
 }
@@ -165,4 +170,9 @@ function keyPressed() {
 
         gameState = "waiting";
     }
+}
+
+function scoreAPoint (ball, pointSprite) {
+    score++;
+    console.log("Pontos:" + score);
 }
