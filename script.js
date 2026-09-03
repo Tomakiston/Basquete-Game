@@ -11,6 +11,7 @@ let canvas;
 
 let ball1, ball2, ball3;
 let balls = [];
+let currentBallRef = null
 
 let ground;
 
@@ -92,7 +93,24 @@ function draw() {
         circle(dragX, dragY, 15);
     }
 
-    balls.overlap(scorePoint, scoreAPoint);
+    /*for(let i = 0; i < balls.length; i++) {
+        let b = balls[i];
+        if(scorePoint.overlapPoint(b.body.position.x, b.body.position.y)) {
+            scoreAPoint();
+            Matter.World.remove(world, b.body);
+            balls.splice(i, 1);
+            i--;
+        }
+    }*/
+
+    if(gameState == "launched" && currentBallRef !== null) {
+        if(scorePoint.overlapPoint(currentBallRef.body.position.x, currentBallRef.body.position.y)) {
+            scoreAPoint();
+            Matter.World.remove(world, currentBallRef.body);
+            balls.pop();
+            currentBallRef = null;
+        }
+    }
 
     drawSprites();
 }
@@ -134,10 +152,10 @@ function mouseDragged() {
 
 function mouseReleased() {
     if(dragging) {
-        let currentBall = balls[balls.length - 1];
+        currentBallRef = balls[balls.length - 1];
         
-        let dx = currentBall.body.position.x - dragX;
-        let dy = currentBall.body.position.y - dragY;
+        let dx = currentBallRef.body.position.x - dragX;
+        let dy = currentBallRef.body.position.y - dragY;
 
         let distance = sqrt(dx*dx + dy*dy);
         let force = min(distance * forceMultiplier, maxForce);
@@ -145,17 +163,17 @@ function mouseReleased() {
         let forceX = cos(angle) * force;
         let forceY = sin(angle) * force;
 
-        currentBall.launchAngle = atan2(forceY, forceX);
+        currentBallRef.launchAngle = atan2(forceY, forceX);
 
-        Body.setStatic(currentBall.body, false);
+        Body.setStatic(currentBallRef.body, false);
 
-        Body.applyForce(currentBall.body, currentBall.body.position, {x: forceX, y: forceY});
+        Body.applyForce(currentBallRef.body, currentBallRef.body.position, {x: forceX, y: forceY});
         //Body.setVelocity(currentBall.body, {x: dx * 0.15, y: dy * 0.15});
 
-        Body.setAngularVelocity(currentBall.body, 0.2);
+        Body.setAngularVelocity(currentBallRef.body, 0.2);
 
         throwForce.fly();
-        balls.pop();
+        //balls.pop();
         
         dragging = false;
         gameState = "launched";
@@ -164,15 +182,23 @@ function mouseReleased() {
 
 function keyPressed() {
     if(keyCode === 32 && gameState === "launched" && balls.length > 0) {
-        let currentBall = balls[balls.length - 1];
-        Matter.Body.setPosition(currentBall.body, {x: 400, y: 320});
-        throwForce.attach(currentBall.body);
+        //let currentBall = balls[balls.length - 1];
+        if(currentBallRef !== null) {
+            Matter.World.remove(world, currentBallRef.body);
+            balls.pop();
+            currentBallRef = null;
+        }
+        if(balls.length > 0) {
+            let nextBall = balls[balls.length - 1];
+            Matter.Body.setPosition(nextBall.body, {x: 400, y: 320});
+            throwForce.attach(nextBall.body);
 
-        gameState = "waiting";
+            gameState = "waiting";
+        }
     }
 }
 
-function scoreAPoint (ball, pointSprite) {
+function scoreAPoint () {
     score++;
     console.log("Pontos:" + score);
 }
