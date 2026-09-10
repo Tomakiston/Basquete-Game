@@ -2,3 +2,12 @@ html, body {
     margin: 100;
     padding: 0;
 }
+.button {
+    background-color: greenyellow;
+    border: none;
+    color: green;
+    padding: 15px 30px;
+    font-size: 16px;
+    margin: 5px;
+    cursor: pointer;
+}

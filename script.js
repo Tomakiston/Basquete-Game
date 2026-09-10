@@ -65,13 +65,30 @@ function setup() {
 
     throwForce = new Throw(ball1.body, {x: 400, y: 320});
 
-    scorePoint = createSprite(900,210, 10,10);
-    //scorePoint.visible = false;
+    scorePoint = createSprite(900,210, 50,10);
+    scorePoint.visible = false;
 }
 
 function draw() {
     background("green")
     Engine.update(engine);
+
+    noStroke();
+    textFont("Comic Sans MS");
+    textSize(25);
+    fill("orange");
+    text("Score: " + score, width - 900,50);
+    text("Aperte ESPAÇO para usar trocar de bola", width - 780, 70);
+
+    if(balls.length == 0) {
+        if(score == 3) {
+            text("Você venceu!", width/2 - 60, 300);
+            text("Clique em Restaurar para reiniciar o jogo", width/2 - 200, 500);
+        } else {
+             text("Você perdeu!", width/2 - 60, 300);
+            text("Clique em Restaurar para reiniciar o jogo", width/2 - 200, 500);
+        }
+    }
 
     ball1.display();
     ball2.display();
@@ -106,7 +123,7 @@ function draw() {
     if(gameState == "launched" && currentBallRef !== null) {
         if(scorePoint.overlapPoint(currentBallRef.body.position.x, currentBallRef.body.position.y)) {
             scoreAPoint();
-            Matter.World.remove(world, currentBallRef.body);
+            //Matter.World.remove(world, currentBallRef.body);
             balls.pop();
             currentBallRef = null;
         }
@@ -184,7 +201,7 @@ function keyPressed() {
     if(keyCode === 32 && gameState === "launched" && balls.length > 0) {
         //let currentBall = balls[balls.length - 1];
         if(currentBallRef !== null) {
-            Matter.World.remove(world, currentBallRef.body);
+            //Matter.World.remove(world, currentBallRef.body);
             balls.pop();
             currentBallRef = null;
         }
