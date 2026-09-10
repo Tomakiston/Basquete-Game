@@ -11,7 +11,8 @@ let canvas;
 
 let ball1, ball2, ball3;
 let balls = [];
-let currentBallRef = null
+let currentBall = null
+let currentBallIndex = 2;
 
 let ground;
 
@@ -49,6 +50,7 @@ function setup() {
     ball2 = new Ball(300,320);
     ball3 = new Ball(200,320);
     balls.push(ball3, ball2, ball1);
+    currentBallIndex = 2;
 
     hoop = createSprite(1005, 300);
     hoop.addImage(hoopImg);
@@ -63,7 +65,7 @@ function setup() {
     invHoop3 = new Ground(1040,138, 35,273);
     invHoop3.visibility = 0;
 
-    throwForce = new Throw(ball1.body, {x: 400, y: 320});
+    throwForce = new Throw(currentBall.body, {x: 400, y: 320});
 
     scorePoint = createSprite(900,210, 50,10);
     scorePoint.visible = false;
@@ -120,8 +122,8 @@ function draw() {
         }
     }*/
 
-    if(gameState == "launched" && currentBallRef !== null) {
-        if(scorePoint.overlapPoint(currentBallRef.body.position.x, currentBallRef.body.position.y)) {
+    if(gameState == "launched" && currentBall !== null) {
+        if(scorePoint.overlapPoint(currentBall.body.position.x, currentBall.body.position.y)) {
             scoreAPoint();
             //Matter.World.remove(world, currentBallRef.body);
             balls.pop();
@@ -133,8 +135,9 @@ function draw() {
 }
 
 function mousePressed() {
-    if(gameState !== "launched" && balls.length > 0) {
-        let currentBall = balls[balls.length - 1];
+    //if(gameState !== "launched" && balls.length > 0) {
+    if(gameState == "waiting" && currentBallIndex >= 0) {
+        let currentBall = balls[currentBallIndex];
         let d = dist(mouseX, mouseY, currentBall.body.position.x, currentBall.body.position.y);
 
         if(d < 50) {
@@ -144,8 +147,8 @@ function mousePressed() {
 }
 
 function mouseDragged() {
-    if(dragging) {
-        let currentBall = balls[balls.length - 1];
+    if(dragging && currentBall !== null) {
+        let currentBall = currentBall;
 
         dragX = mouseX;
         dragY = mouseY;
@@ -168,11 +171,11 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
-    if(dragging) {
-        currentBallRef = balls[balls.length - 1];
+    if(dragging && currentBall !== null) {
+        let currentBall = currentBall;
         
-        let dx = currentBallRef.body.position.x - dragX;
-        let dy = currentBallRef.body.position.y - dragY;
+        let dx = currentBall.body.position.x - dragX;
+        let dy = currentBall.body.position.y - dragY;
 
         let distance = sqrt(dx*dx + dy*dy);
         let force = min(distance * forceMultiplier, maxForce);
@@ -180,14 +183,14 @@ function mouseReleased() {
         let forceX = cos(angle) * force;
         let forceY = sin(angle) * force;
 
-        currentBallRef.launchAngle = atan2(forceY, forceX);
+        currentBall.launchAngle = atan2(forceY, forceX);
 
-        Body.setStatic(currentBallRef.body, false);
+        Body.setStatic(currentBall.body, false);
 
-        Body.applyForce(currentBallRef.body, currentBallRef.body.position, {x: forceX, y: forceY});
+        Body.applyForce(currentBall.body, currentBall.body.position, {x: forceX, y: forceY});
         //Body.setVelocity(currentBall.body, {x: dx * 0.15, y: dy * 0.15});
 
-        Body.setAngularVelocity(currentBallRef.body, 0.2);
+        Body.setAngularVelocity(currentBall.body, 0.2);
 
         throwForce.fly();
         //balls.pop();
@@ -205,17 +208,36 @@ function keyPressed() {
             balls.pop();
             currentBallRef = null;
         }
-        if(balls.length > 0) {
-            let nextBall = balls[balls.length - 1];
+        /*if(balls.length > 0) {
+            let nextBall = balls[currentBallIndex];
             Matter.Body.setPosition(nextBall.body, {x: 400, y: 320});
             throwForce.attach(nextBall.body);
 
             gameState = "waiting";
-        }
+        }*/
     }
 }
 
 function scoreAPoint () {
     score++;
     console.log("Pontos:" + score);
+}
+
+function prepareNextBall() { 
+    currentBallIndex--; 
+
+    if (currentBallIndex >= 0) {
+        let nextBall = balls[currentBallIndex]; 
+
+        Body.setPosition(nextBall.body, {x:400, y:320}); 
+        Body.setVelocity(nextBall.body, {x:0, y:0}); 
+        Body.setAngularVelocity(nextBall.body, 0); 
+        Body.setStatic(nextBall.body, true); 
+
+        throwForce.attach(nextBall.body); 
+        gameState = "waiting"; 
+    } else {
+        gameState = "finished";
+        console.log("Fim das bolas!"); 
+    } 
 }
